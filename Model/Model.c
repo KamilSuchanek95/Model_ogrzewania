@@ -3,9 +3,7 @@
 #include <math.h>
 #include "Kalman.h"
 #include "PID.h"
-#include <gsl/gsl_math.h>
 
-#define Euler		2.7182818284590452354
 
 
 //#define M_E			45
@@ -41,29 +39,29 @@ int main(){
 	float dT; /* Różnica temperatur */
 	float Ptot; /* Strumień ciepła do zewnątrz */
 	float P = 1; /* Aktualne ciepło grzałki */
-
+	float R = pow(m->U, -1);
 	/*Pętla główna*/
-	int i; for(i = 0; i<1000; i++)/* t */
+	int i; for(i = 0; i<10000; i++)/* t */
 	{
 
-		if(i>500){m->G=0;};
+		if(i>5000){m->G=0;};
 
 		if(m->G == 1)/* Włączenie grzałki -> P(t) = Pb*exp(t/(R*C)) */
-		{
-			if (P >= m->Pg){/*Wartość już nie rośnie*/}else{P = m->Pg * frexp(Euler, -i/Euler);}/* Nagrzewanie grzałki */
-			dT = abs(m->Tw - m->Tz); /* Ustalenie różnicy temperatur */
-			Ptot = m->U * m->Pow * dT;/* Ciepło uchodzące z budynku */
-			Zs = (P-Ptot) / m->C;		/* temperatura zapewniona przez ciepło grzałki */
-			m->Tw = m->Tw + Zs; /* Zmiana temperatury wewnątrz */
-		}
-		else/* G != 1 */
-		{
-			if (P <= 0.1){/*Wartość już nie maleje*/}else{P = m->Pg *(1 - frexp(Euler, -i/Euler));}/* Ochładzanie grzałki */
-			dT = abs(m->Tw - m->Tz); /* Ustalenie różnicy temperatur */
-			Ptot = m->U * m->Pow * dT;/* Ciepło uchodzące z budynku */
-			Zs = (P-Ptot) / m->C;		/* temperatura zapewniona przez ciepło grzałki */
-			m->Tw = m->Tw + Zs; /* Zmiana temperatury wewnątrz */
-		}
+				{
+					if (P >= m->Pg){/*Wartość już nie rośnie*/}else{P = m->Pg * exp(-i/(R*m->U));}/* Nagrzewanie grzałki */
+					dT = abs(m->Tw - m->Tz); /* Ustalenie różnicy temperatur */
+					Ptot = m->U * m->Pow * (m->Tw - m->Tz);/* Ciepło uchodzące z budynku */
+					Zs = (P-Ptot) / m->C;		/* temperatura zapewniona przez ciepło grzałki */
+					m->Tw = m->Tw + Zs; /* Zmiana temperatury wewnątrz */
+				}
+				else/* G != 1 */
+				{
+					if (P <= 0.1){/*Wartość już nie maleje*/}else{P = m->Pg *(1 - exp(-i/(R*m->U)));}/* Ochładzanie grzałki */
+					dT = abs(m->Tw - m->Tz); /* Ustalenie różnicy temperatur */
+					Ptot = m->U * m->Pow * (m->Tw - m->Tz);/* Ciepło uchodzące z budynku */
+					Zs = (P-Ptot) / m->C;		/* temperatura zapewniona przez ciepło grzałki */
+					m->Tw = m->Tw + Zs; /* Zmiana temperatury wewnątrz */
+				}
 	//if(m->G){fprintf(fp,"%d\n", 1);}else{fprintf(fp,"%d\n", 1);}
 		fprintf(fp, "%d %f\n",i, m->Tw);
 	}
