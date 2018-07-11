@@ -9,8 +9,6 @@
 #define PID_H_
 
 typedef struct {
-	int setpoint;
-	int t[2];
 	int U;
 	int dt;
 	int K_p;
@@ -21,6 +19,6 @@ typedef struct {
 }PID_st_t;
 
 
-extern int PID(int point);
+extern float PID(float Tpop, float Tw);
 
 #endif /* PID_H_ */
