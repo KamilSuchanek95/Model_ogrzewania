@@ -169,3 +169,4 @@ x = 0.0
 ## Last datafile plotted: "dane.txt"
 plot "dane.txt" using 1:2 title "Zmiana Temperatury Budynku" with lines
 #    EOF
+pause mouse any
